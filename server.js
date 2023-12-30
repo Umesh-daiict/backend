@@ -3,9 +3,18 @@ if (process.env.NODE_ENV !== 'PROD') {
 }
 const express = require('express');
 const app = express();
+app.use(express.json());
+const todos = ['hii'];
 
 app.get('/', (req, res) => {
-	res.send('Hello Node');
+	res.json({
+		todos,
+	});
+});
+
+app.post('/', (req, res) => {
+	todos.push(req.body.todo);
+	res.json({ todos });
 });
 
 const CurrentPort = process.env.PORT || 3000;
