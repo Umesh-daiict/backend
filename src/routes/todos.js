@@ -4,6 +4,7 @@ const todos = [];
 router.get("/", (req, res) => {
   res.json({
     todos,
+    user: req.user,
   });
 });
 
@@ -32,14 +33,14 @@ router.patch("/:id", (req, res) => {
   const id = req.params.id;
   console.log("id", id);
   if (isNaN(id)) {
-    console.log("non num", id);
+    // console.log("non num", id);
     res.json({ todos: todos, msg: `${id} is not a number,not updated todos.` });
   }
   if (!req.body.todo) {
-    console.log("non body", id);
+    // console.log("non body", id);
     res.json({ todos: todos, msg: `send todo to update at ${id} index` });
   }
-  console.log("non body", id);
+//   console.log("non body", id);
   todos[id - 1] = req.body.todo;
   res.json({ todos: todos, msg: `todos updated at ${id} index` });
 });
