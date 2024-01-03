@@ -24,4 +24,5 @@ const cookieLogger = (req, _res, next) => {
 
 const portLogger = () =>
   console.log(`server is running on port ${process.env.PORT || 3000}`);
-module.exports = { cookieLogger,  };
+
+module.exports = { cookieLogger, portLogger };

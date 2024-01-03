@@ -2,6 +2,7 @@
 
 const express = require("express");
 const passport = require("passport");
+const { authCheck } = require("../middleware/authChecker");
 const LocalStrategy = require("passport-local").Strategy;
 
 const router = express.Router();
@@ -55,13 +56,7 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
-router.use((req, res, next) => {
-  if (req.isAuthenticated()) {
-    next();
-  } else {
-    res.status(202).json({ message: "not authed!" });
-  }
-});
+router.use(authCheck);
 
 router.get("/logout", (req, res) => {
   req.logout((err) => {
