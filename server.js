@@ -5,8 +5,9 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req) => {
+app.use((req, res, next) => {
 	console.log('log==------------------>>', req.url, req.body);
+	next();
 });
 
 const todos = [];
@@ -40,23 +41,18 @@ app.delete('/all', (req, res) => {
 
 app.patch('/:id', (req, res) => {
 	const id = req.params.id;
-	console.log('id', id);
 	if (isNaN(id)) {
-		console.log('non num', id);
 		res.json({ todos: todos, msg: `${id} is not a number,not updated todos.` });
 	}
 	if (!req.body.todo) {
-		console.log('non body', id);
 		res.json({ todos: todos, msg: `send todo to update at ${id} index` });
 	}
-	console.log('non body', id);
 	todos[id - 1] = req.body.todo;
 	res.json({ todos: todos, msg: `todos updated at ${id} index` });
 });
 
 app.delete('/:id', (req, res) => {
 	const cId = req.params.id;
-	console.log(req.params.id);
 	if (isNaN(req.params.id)) {
 		res.json({ todos: todos, msg: `${cId} is Not Number, delete failed` });
 	}
