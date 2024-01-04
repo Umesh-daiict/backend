@@ -11,7 +11,7 @@ router.get("/", (_req, res) => {
     .catch((err) => console.log(err));
 });
 
-router.post("", (req, res) => {
+router.post("/", (req, res) => {
   const list = req.body.todo;
 
   if (!list) {
@@ -51,29 +51,47 @@ router.delete("/all", (_req, res) => {
 
 router.patch("/:id", (req, res) => {
   const id = req.params.id;
-  console.log("id", id);
-  if (isNaN(id)) {
-    // console.log("non num", id);
-    res.json({ todos: todos, msg: `${id} is not a number,not updated todos.` });
-  }
+
   if (!req.body.todo) {
-    // console.log("non body", id);
-    res.json({ todos: todos, msg: `send todo to update at ${id} index` });
+    Todos.find({}).then((todos) => {
+      res.json({ todos: todos, msg: `send todo to update at ${id} index` });
+    });
+  } else {
+    Todos.updateOne({ _id: id }, { $set: { todo: req.body.todo } })
+      .then((info) => {
+        if (info.modifiedCount > 0) {
+          Todos.find({}).then((doc) => {
+            res.json({ todos: doc, msg: `todos updated at ${id} index`, info });
+          });
+        } else {
+          Todos.find({}).then((doc) => {
+            res.status(403).json({
+              todos: doc,
+              msg: `No document faunde for given index`,
+              info,
+            });
+          });
+        }
+      })
+      .catch((err) => {
+        Todos.find({}).then((doc) => {
+          res
+            .status(403)
+            .json({ todos: doc, msg: `failed to update at ${id}`, err });
+        });
+      });
   }
-  //   console.log("non body", id);
-  todos[id - 1] = req.body.todo;
-  res.json({ todos: todos, msg: `todos updated at ${id} index` });
 });
 
 router.delete("/:id", (req, res) => {
   const cId = req.params.id;
-  console.log(req.params.id);
-  if (isNaN(req.params.id)) {
-    res.json({ msg: `${cId} is Not Number, delete failed` });
-  }
-
-  Todos.splice(cId - 1, 1);
-  // res.json({ todos: todos, msg: `todo at ${cId} deleted` });
+  Todos.deleteOne({ _id: cId })
+    .then((info) => {
+      res.json({ info: info, msg: ` deleted at ${cId}` });
+    })
+    .catch((err) => {
+      res.status(403).json({ msg: `failed to delete at ${cId}`, err });
+    });
 });
 
 module.exports = router;
