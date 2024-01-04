@@ -3,6 +3,8 @@ if (process.env.NODE_ENV !== 'PROD') {
 }
 const express = require('express');
 const app = express();
+const mongoose = require('mongoose');
+const UserModel = require('./app/models/user-model');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
@@ -10,56 +12,46 @@ app.use((req, res, next) => {
 	next();
 });
 
-const todos = [];
+mongoose
+	.connect(process.env.MONGO_URL)
+	.then(() => {
+		console.log('mongodb connected!');
+	})
+	.catch((err) => {
+		console.log('could not connect be mongodb because of error : ', err);
+	});
 
-app.get('/', (req, res) => {
-	res.json({
-		todos,
+app.get('/', (_req, res) => {
+	UserModel.find({}).then((doc) => {
+		res.json({ data: doc, msg: 'users' });
 	});
 });
 
 app.post('/', (req, res) => {
-	const list = req.body.todo;
-	if (!list) {
+	const user = req.body.user;
+	if (!user.username || !user.password) {
 		res.json({
-			todos: todos,
-			msg: `need todo in req body to create new todo.`,
+			msg: `need user name and password`,
 		});
 	}
-	if (Array.isArray(list)) {
-		todos.push(...req.body.todo);
-	} else {
-		todos.push(req.body.todo);
-	}
-	res.json({ todos });
+
+	const newUser = new UserModel(req.body.user);
+	newUser
+		.save()
+		.then((doc) => {
+			res.json({ doc });
+		})
+		.catch((err) => {
+			res.json({ err });
+			console.log(err);
+		});
 });
 
-app.delete('/all', (req, res) => {
-	todos.splice(0);
-	res.json({ todos: todos, msg: `all todos deleted` });
-});
+app.delete('/all', (req, res) => {});
 
-app.patch('/:id', (req, res) => {
-	const id = req.params.id;
-	if (isNaN(id)) {
-		res.json({ todos: todos, msg: `${id} is not a number,not updated todos.` });
-	}
-	if (!req.body.todo) {
-		res.json({ todos: todos, msg: `send todo to update at ${id} index` });
-	}
-	todos[id - 1] = req.body.todo;
-	res.json({ todos: todos, msg: `todos updated at ${id} index` });
-});
+app.patch('/:id', (req, res) => {});
 
-app.delete('/:id', (req, res) => {
-	const cId = req.params.id;
-	if (isNaN(req.params.id)) {
-		res.json({ todos: todos, msg: `${cId} is Not Number, delete failed` });
-	}
-
-	todos.splice(cId - 1, 1);
-	res.json({ todos: todos, msg: `todo at ${cId} deleted` });
-});
+app.delete('/:id', (req, res) => {});
 
 const CurrentPort = process.env.PORT || 3000;
 app.listen(CurrentPort, () =>
