@@ -1,28 +1,34 @@
-if (process.env.NODE_ENV !== "PROD") {
-  require("dotenv").config();
-  //add date to acd and dec
-}
+// if (process.env.NODE_ENV !== "PROD") {
+//   require("dotenv").config();
+//   //add date to acd and dec
+// }
 const express = require("express");
-const todoRouter = require("./src/routes/todos");
-const authRouter = require("./src/routes/auth");
+// const todoRouter = require("./src/routes/todos");
+// const authRouter = require("./src/routes/auth");
+const userRouter = require("./src/routes/user");
+
 const { cookieLogger, portLogger } = require("./src/middleware/logger");
 
 const { MongoClient } = require("mongodb");
 const mongoose = require("mongoose");
 
-const session = require("express-session");
-const passport = require("passport");
-const { authCheck } = require("./src/middleware/authChecker");
+// const session = require("express-session");
+// const passport = require("passport");
+// const { authCheck } = require("./src/middleware/authChecker");
 const app = express();
 
 //Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(session({ secret: "secret", resave: false, saveUninitialized: true }));
-app.use(passport.initialize()); // init password on every route call
-app.use(passport.session()); // allow passport to use "express session"
+// app.use(express.json());
+app.use(
+  express.urlencoded({ extended: false, limit: 10000, parameterLimit: 2 })
+);
+// app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cookieLogger);
+// app.use(session({ secret: "secret", resave: false, saveUninitialized: true }));
+// app.use(passport.initialize()); // init password on every route call
+// app.use(passport.session()); // allow passport to use "express session"
+
+// app.use(cookieLogger);
 // Create Instance of MongoClient for mongodb
 const client = new MongoClient("mongodb://localhost:27017");
 
@@ -36,12 +42,13 @@ client
     db.on("error", console.error.bind(console, "MongoDB connection error:"));
   })
   .catch((error) => console.log("Failed to connect", error));
+app.use("/user", userRouter);
 
-app.use("/auth", authRouter);
-app.use(
-  "/todos",
-  // authCheck,
-  todoRouter
-);
+// app.use("/auth", authRouter);
+// app.use(
+//   "/todos",
+//   // authCheck,
+//   todoRouter
+// );
 
 app.listen(process.env.PORT || 3000, portLogger);
