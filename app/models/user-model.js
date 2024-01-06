@@ -34,5 +34,7 @@ users.methods.comparePassword = async function (enteredPassword) {
 		throw err;
 	}
 };
+const usermodel = mongoose.model('users', users);
 
-module.exports = mongoose.model('users', users);
+// usermodel.createIndexes({ password: 1 });
+module.exports = usermodel;

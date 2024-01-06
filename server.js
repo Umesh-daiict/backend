@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const UserModel = require('./app/models/user-model');
+const { docWithoutPwdhash, handleError } = require('./app/middleware/utils');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
@@ -21,10 +22,17 @@ mongoose
 		console.log('could not connect be mongodb because of error : ', err);
 	});
 
-app.get('/', (_req, res) => {
-	UserModel.find({}).then((doc) => {
-		res.json({ data: doc, msg: 'users' });
-	});
+app.get('/', (req, res) => {
+	const page = parseInt(req.query.page) || 1;
+	const limit = parseInt(req.query.limit) || 10;
+	console.log('req------------------>>>>>', page, limit);
+	UserModel.find({}, { password: 0 })
+		.skip((page - 1) * limit)
+		.limit(limit)
+		.then((doc) => {
+			res.json({ data: doc, msg: 'users' });
+		})
+		.catch((err) => handleError(res, err));
 });
 
 app.post('/', (req, res) => {
@@ -39,13 +47,20 @@ app.post('/', (req, res) => {
 	newUser
 		.save()
 		.then((doc) => {
-			res.json({ doc });
+			res.json({ user: docWithoutPwdhash(doc) });
 		})
-		.catch((err) => {
-			res.json({ err });
-			console.log(err);
-		});
+		.catch((err) => handleError(res, err));
 });
+
+app.post('/login', (req, res) => {
+	const user = req.body.user;
+	if (!user.username || !user.password) {
+		res.json({
+			msg: `need user name and password`,
+		});
+	}
+});
+
 
 app.delete('/all', (req, res) => {});
 
