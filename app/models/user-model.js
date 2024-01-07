@@ -10,30 +10,31 @@ const users = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	role: { type: String, enum: ['user', 'admin'], default: 'user' },
 });
 // store multi img and compress it
-users.pre('save', async function (next) {
-	const user = this;
-	if (!user.isModified('password')) return next();
+// users.pre('save', async function (next) {
+// 	const user = this;
+// 	if (!user.isModified('password')) return next();
 
-	try {
-		const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(user.password, salt);
+// 	try {
+// 		const salt = await bcrypt.genSalt(10);
+// 		const hashedPassword = await bcrypt.hash(user.password, salt);
 
-		user.password = hashedPassword;
-		next();
-	} catch (err) {
-		return next(err);
-	}
-});
+// 		user.password = hashedPassword;
+// 		next();
+// 	} catch (err) {
+// 		return next(err);
+// 	}
+// });
 
-users.methods.comparePassword = async function (enteredPassword) {
-	try {
-		return await bcrypt.compare(enteredPassword, this.password);
-	} catch (err) {
-		throw err;
-	}
-};
+// users.methods.comparePassword = async function (enteredPassword) {
+// 	try {
+// 		return await bcrypt.compare(enteredPassword, this.password);
+// 	} catch (err) {
+// 		throw err;
+// 	}
+// };
 const usermodel = mongoose.model('users', users);
 
 // usermodel.createIndexes({ password: 1 });
