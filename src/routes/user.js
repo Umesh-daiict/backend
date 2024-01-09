@@ -1,4 +1,4 @@
-const { User, validate } = require("../model/user-model");
+const { Users, validate } = require("../model/user-model");
 const multer = require("multer");
 const upload = multer();
 
@@ -6,7 +6,9 @@ const router = require("express").Router();
 
 // Multer configuration for handling profile image uploads
 const storage = multer.memoryStorage();
-const profileImageUpload = multer({ storage: storage }).single("profileImage");
+// const profileImageUpload = multer({ storage: storage }).single("profileImage");
+
+const upload = multer({ storage: storage });
 
 router.post("/", (req, res) => {
   // Use profileImageUpload middleware to handle the profile image upload
@@ -44,11 +46,11 @@ router.post("/", (req, res) => {
       return res.status(405).json({ error, data: req.body });
     }
 
-    const userData = new User(user);
+    const userData = new Users(user);
     userData
       .save()
       .then((doc) => {
-        res.json({ msg: "User data saved successfully", user: doc });
+        res.json({ msg: "Users data saved successfully", user: doc });
       })
       .catch((err) => {
         console.error(err);
@@ -57,6 +59,22 @@ router.post("/", (req, res) => {
           .json({ error: "Error saving user to database", info: err });
       });
   });
+});
+
+router.get("/profileImage/:userId", async (req, res) => {
+  try {
+    const user = await Users.findById({ _id: req.params.userId });
+
+    if (!user || !user.profileImage) {
+      return res.status(404).send("Image not found");
+    }
+
+    res.set("Content-Type", user.profileImage.contentType);
+    res.send(user.profileImage.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal server error");
+  }
 });
 
 module.exports = router;

@@ -27,6 +27,11 @@ const User = new mongoose.Schema({
     data: Buffer,
     contentType: String,
   },
+  extraDoc : [{
+    id: { type: Number ,unique: true, required: true},
+    data: Buffer,
+    contentType: String,
+  }]
 });
 
 const ValidationUser = function (user) {
@@ -45,10 +50,17 @@ const ValidationUser = function (user) {
       data: Joi.binary().required(),
       contentType: Joi.string().required(),
     }),
+    extraDoc: Joi.array().items(
+      Joi.object({
+        id: Joi.integer().required(),
+        data: Joi.binary().required(),
+        contentType: Joi.string().required(),
+      })
+    ),
   });
 
   return schema.validate(user);
 };
 
 exports.validate = ValidationUser;
-exports.User = mongoose.model("Users", User);
+exports.Users = mongoose.model("Users", User);
